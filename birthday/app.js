@@ -1,7 +1,7 @@
 (() => {
   const c = window.BIRTHDAY;
-  const key = 'dasha-birthday-v2';
-  const stages = ['Старт', 'Чемпионка', 'Тайник №1', 'Танцор', 'Любовь', 'Тайник №2', 'От Вани', 'Подарок'];
+  const key = 'dasha-birthday-v3';
+  const stages = ['Старт', 'Чемпионка', 'Тайник №1', 'Танцор', 'Можно всё', 'Планы', 'Тайник №2', 'Любовь', 'От Вани', 'Подарок'];
   let state = { step: 0, unlocked: 0, answers: {} };
   try {
     const saved = JSON.parse(localStorage.getItem(key));
@@ -19,11 +19,11 @@
   function next() { state.step = Math.min(state.step + 1, stages.length - 1); state.unlocked = Math.max(state.unlocked, state.step); save(); render(true); }
   function question(index) {
     const q = c.questions[index];
-    add('span', `ВОПРОС 0${index + 1} / 03`, 'badge'); add('h2', q.title); add('p', q.text, 'question-text');
+    add('span', `ВОПРОС ${String(index + 1).padStart(2, '0')} / ${String(c.questions.length).padStart(2, '0')}`, 'badge'); add('h2', q.title); add('p', q.text, 'question-text');
     const choices = add('div', '', 'choices'); const feedback = add('div', '', 'feedback'); feedback.setAttribute('role', 'status');
     function result(i) {
       choices.querySelectorAll('button').forEach((b, n) => { b.disabled = true; b.classList.toggle('selected', i === n); });
-      feedback.replaceChildren(el('span', '✦ ВЕРДИКТ', 'feedback-label'), el('p', q.response));
+      feedback.replaceChildren(el('span', '✦ ВЕРДИКТ', 'feedback-label'), el('p', q.responses?.[i] ?? q.response));
       if (q.aside) feedback.append(el('small', q.aside));
       feedback.classList.add('success');
       button('Забрать следующий этап →', next);
@@ -51,9 +51,9 @@
     document.querySelectorAll('.confetti').forEach(n => n.remove());
     content.replaceChildren(); content.style.animation = 'none'; void content.offsetWidth; content.style.animation = '';
     document.querySelector('#chapter').textContent = stages[state.step].toUpperCase();
-    document.querySelector('#counter').textContent = `0${state.step + 1} / 08`;
-    document.querySelector('#route-status').textContent = `${state.unlocked} / 7 этапов открыто`;
-    const progress = document.querySelector('#progress'); progress.style.setProperty('--progress', `${state.unlocked / 7 * 100}%`);
+    document.querySelector('#counter').textContent = `${String(state.step + 1).padStart(2, '0')} / ${String(stages.length).padStart(2, '0')}`;
+    document.querySelector('#route-status').textContent = `${state.unlocked} / ${stages.length - 1} этапов открыто`;
+    const progress = document.querySelector('#progress'); progress.style.setProperty('--progress', `${state.unlocked / (stages.length - 1) * 100}%`);
     progress.replaceChildren(...stages.map((name, i) => {
       const b = el('button', '', `route-step${i === state.step ? ' current' : ''}${i < state.unlocked ? ' done' : ''}`);
       b.append(el('span', i < state.unlocked ? '✓' : String(i + 1).padStart(2, '0'), 'route-number'), el('span', name, 'route-name'));
@@ -62,14 +62,16 @@
       b.onclick = () => { state.step = i; save(); render(true); }; return b;
     }));
     switch (state.step) {
-      case 0: add('span', 'ДОСТУП: ТОЛЬКО ИМЕНИННИЦЕ', 'badge'); add('h2', 'Жiнка, у нас тут спецоперация.'); add('p', 'Три вопроса. Два тайника. Один главный подарок. Проверим твою интуицию, устроим пару вылазок и отметим новый уровень как положено.'); const chips = add('div', '', 'chips'); ['03 вопроса', '02 тайника', '01 легенда'].forEach(t => chips.append(el('span', t))); button('Погнали. Мне уже 30 →', next); add('small', 'Правила простые: не торопиться, подозревать подвох и получать удовольствие.', 'fine-print'); break;
+      case 0: add('span', 'ДОСТУП: ТОЛЬКО ИМЕНИННИЦЕ', 'badge'); add('h2', 'Жiнка, у нас тут спецоперация.'); add('p', 'Пять вопросов. Два тайника. Один главный подарок. Проверим твою интуицию, устроим пару вылазок и отметим новый уровень как положено.'); const chips = add('div', '', 'chips'); ['05 вопросов', '02 тайника', '01 легенда'].forEach(t => chips.append(el('span', t))); button('Погнали. Мне уже 30 →', next); add('small', 'Правила простые: не торопиться, подозревать подвох и получать удовольствие.', 'fine-print'); break;
       case 1: question(0); break;
       case 2: hunt('Экспедиция в бельевой хаос', 'Первая зацепка — в шкафу с твоим бельём. Да, среди этого великолепного бардака. Что именно искать, поймёшь на месте. Я верю в тебя. И немного боюсь за поисковую группу.', c.firstCode, 1); break;
       case 3: question(1); break;
       case 4: question(2); break;
-      case 5: hunt('Подними уровень. Буквально.', 'Следующая зацепка — на верхней полке шкафа. Содержимое засекречено: сначала доберись, потом разберёмся. Если понадобится помощь с высотой, рядом есть один доброволец.', c.secondCode, 2); break;
-      case 6: add('span', 'ЛАДНО, МИНУТКА БЕЗ ПОДКОЛОВ', 'badge'); add('h2', 'Котик, а если серьёзно.'); add('p', c.letter, 'letter'); add('span', 'Твой Ваня ♡', 'signature'); button('Так, а где главный подарок? →', next); break;
-      case 7: add('span', 'МИССИЯ ВЫПОЛНЕНА', 'badge'); add('h2', 'С днём рождения, крыска!'); const gift = add('div', '', 'gift'); gift.append(el('small', 'WILDBERRIES / ПОДАРОЧНЫЙ СЕРТИФИКАТ'), el('h3', c.giftTitle), el('span', 'WB', 'gift-mark')); add('p', c.giftText); if (c.certificateFile) { const a = add('a', 'Забрать мой лут ↗', 'gift-link'); a.href = c.certificateFile; a.target = '_blank'; a.rel = 'noopener'; } else add('p', 'Посмотри на Ваню. Сейчас он должен торжественно вручить сертификат. Ваня, это твой выход.', 'handoff'); button('Ещё конфетти. Я заслужила ✦', celebrate, 'secondary'); celebrate(); break;
+      case 5: question(3); break;
+      case 6: hunt('Подними уровень. Буквально.', 'Следующая зацепка — на верхней полке шкафа. Содержимое засекречено: сначала доберись, потом разберёмся. Если понадобится помощь с высотой, рядом есть один доброволец.', c.secondCode, 2); break;
+      case 7: question(4); break;
+      case 8: add('span', 'ЛАДНО, МИНУТКА БЕЗ ПОДКОЛОВ', 'badge'); add('h2', 'Котик, а если серьёзно.'); add('p', c.letter, 'letter'); add('span', 'Твой Ваня ♡', 'signature'); button('Так, а где главный подарок? →', next); break;
+      case 9: add('span', 'МИССИЯ ВЫПОЛНЕНА', 'badge'); add('h2', 'С днём рождения, крыска!'); const gift = add('div', '', 'gift'); gift.append(el('small', 'WILDBERRIES / ПОДАРОЧНЫЙ СЕРТИФИКАТ'), el('h3', c.giftTitle), el('span', 'WB', 'gift-mark')); add('p', c.giftText); if (c.certificateFile) { const a = add('a', 'Забрать мой лут ↗', 'gift-link'); a.href = c.certificateFile; a.target = '_blank'; a.rel = 'noopener'; } else add('p', 'Посмотри на Ваню. Сейчас он должен торжественно вручить сертификат. Ваня, это твой выход.', 'handoff'); button('Ещё конфетти. Я заслужила ✦', celebrate, 'secondary'); celebrate(); break;
     }
     if (focus) { const h = content.querySelector('h2'); h.tabIndex = -1; h.focus({ preventScroll: true }); }
   }
