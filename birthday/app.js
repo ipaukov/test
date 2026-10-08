@@ -1,7 +1,7 @@
 (() => {
   const c = window.BIRTHDAY;
   const key = 'dasha-birthday-v2';
-  const stages = ['Старт', 'Чемпионка', 'За стихом', 'Танцор', 'Любовь', 'За букетом', 'От Вани', 'Подарок'];
+  const stages = ['Старт', 'Чемпионка', 'Тайник №1', 'Танцор', 'Любовь', 'Тайник №2', 'От Вани', 'Подарок'];
   let state = { step: 0, unlocked: 0, answers: {} };
   try {
     const saved = JSON.parse(localStorage.getItem(key));
@@ -31,7 +31,7 @@
     q.answers.forEach((answer, i) => {
       const b = el('button', '', 'choice'); b.append(el('span', ['А', 'Б', 'В', 'Г'][i], 'choice-letter'), el('span', answer)); choices.append(b);
       b.onclick = () => {
-        if (q.correctIndex !== undefined && i !== q.correctIndex) { feedback.textContent = q.hint; feedback.classList.add('nudge'); b.classList.add('wrong'); b.setAttribute('aria-describedby', 'answer-hint'); feedback.id = 'answer-hint'; return; }
+        if (q.correctIndex !== undefined && i !== q.correctIndex) { feedback.textContent = q.hints[i]; feedback.classList.add('nudge'); b.classList.add('wrong'); b.setAttribute('aria-describedby', 'answer-hint'); feedback.id = 'answer-hint'; return; }
         state.answers[index] = i; save(); result(i); content.querySelector('.primary').focus();
       };
     });
@@ -41,7 +41,7 @@
     add('span', `ПОБОЧНЫЙ КВЕСТ 0${number}`, 'badge'); add('h2', title); add('p', text);
     const mission = add('div', '', 'mission'); mission.append(el('span', '↗'), el('span', 'Отойди от компьютера. Найди записку. Вернись с кодом.'));
     const form = add('form'); const label = el('label', 'СЕКРЕТНОЕ СЛОВО ИЗ ЗАПИСКИ', 'label'); label.htmlFor = 'code';
-    const input = el('input'); input.id = 'code'; input.autocomplete = 'off'; input.placeholder = 'Код сюда. Мужу не подсказывать.'; input.required = true;
+    const input = el('input'); input.id = 'code'; input.autocomplete = 'off'; input.placeholder = 'Введи слово из найденной записки.'; input.required = true;
     const error = el('div', '', 'error'); error.id = 'code-error'; error.setAttribute('role', 'status'); input.setAttribute('aria-describedby', error.id);
     const submit = el('button', 'Я нашла. Открывай →', 'primary'); submit.type = 'submit'; form.append(label, input, error, submit);
     form.onsubmit = event => { event.preventDefault(); if (input.value.trim().toLocaleLowerCase('ru') === code.trim().toLocaleLowerCase('ru')) next(); else { error.textContent = 'Не тот код. Загляни в записку — там всё без шифра Цезаря.'; input.setAttribute('aria-invalid', 'true'); input.focus(); } };
@@ -62,12 +62,12 @@
       b.onclick = () => { state.step = i; save(); render(true); }; return b;
     }));
     switch (state.step) {
-      case 0: add('span', 'ДОСТУП: ТОЛЬКО ИМЕНИННИЦЕ', 'badge'); add('h2', 'Жiнка, у нас тут спецоперация.'); add('p', 'Три вопроса. Два тайника. Один главный подарок. Тебе понадобятся мозги, ноги и полное отсутствие жалости к мужу.'); const chips = add('div', '', 'chips'); ['03 вопроса', '02 тайника', '01 легенда'].forEach(t => chips.append(el('span', t))); button('Погнали. Мне уже 30 →', next); add('small', 'Проходить в присутствии мужа. Он реквизит и моральная поддержка.', 'fine-print'); break;
+      case 0: add('span', 'ДОСТУП: ТОЛЬКО ИМЕНИННИЦЕ', 'badge'); add('h2', 'Жiнка, у нас тут спецоперация.'); add('p', 'Три вопроса. Два тайника. Один главный подарок. Проверим твою интуицию, устроим пару вылазок и отметим новый уровень как положено.'); const chips = add('div', '', 'chips'); ['03 вопроса', '02 тайника', '01 легенда'].forEach(t => chips.append(el('span', t))); button('Погнали. Мне уже 30 →', next); add('small', 'Правила простые: не торопиться, подозревать подвох и получать удовольствие.', 'fine-print'); break;
       case 1: question(0); break;
-      case 2: hunt('Экспедиция в бельевой хаос', 'В шкафу с твоим бельём спряталась записка со стихом. Да, среди этого великолепного бардака. Я верю в тебя. И немного боюсь за поисковую группу.', c.firstCode, 1); break;
+      case 2: hunt('Экспедиция в бельевой хаос', 'Первая зацепка — в шкафу с твоим бельём. Да, среди этого великолепного бардака. Что именно искать, поймёшь на месте. Я верю в тебя. И немного боюсь за поисковую группу.', c.firstCode, 1); break;
       case 3: question(1); break;
       case 4: question(2); break;
-      case 5: hunt('Подними уровень. Буквально.', 'Следующий тайник — на верхней полке шкафа. Там записка и кое-что красивое. Спойлер: это не муж в трусах. Если высоко — используй мужа по назначению.', c.secondCode, 2); break;
+      case 5: hunt('Подними уровень. Буквально.', 'Следующая зацепка — на верхней полке шкафа. Содержимое засекречено: сначала доберись, потом разберёмся. Если понадобится помощь с высотой, рядом есть один доброволец.', c.secondCode, 2); break;
       case 6: add('span', 'ЛАДНО, МИНУТКА БЕЗ ПОДКОЛОВ', 'badge'); add('h2', 'Котик, а если серьёзно.'); add('p', c.letter, 'letter'); add('span', 'Твой Ваня ♡', 'signature'); button('Так, а где главный подарок? →', next); break;
       case 7: add('span', 'МИССИЯ ВЫПОЛНЕНА', 'badge'); add('h2', 'С днём рождения, крыска!'); const gift = add('div', '', 'gift'); gift.append(el('small', 'WILDBERRIES / ПОДАРОЧНЫЙ СЕРТИФИКАТ'), el('h3', c.giftTitle), el('span', 'WB', 'gift-mark')); add('p', c.giftText); if (c.certificateFile) { const a = add('a', 'Забрать мой лут ↗', 'gift-link'); a.href = c.certificateFile; a.target = '_blank'; a.rel = 'noopener'; } else add('p', 'Посмотри на Ваню. Сейчас он должен торжественно вручить сертификат. Ваня, это твой выход.', 'handoff'); button('Ещё конфетти. Я заслужила ✦', celebrate, 'secondary'); celebrate(); break;
     }
